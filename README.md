@@ -28,19 +28,6 @@ Relational & Persistent Storage: Apache AGE, ArangoDB, and CognoDB persist data 
 
 ---
 
-## Key Performance Insights & Trade-offs
-
-1. **In-Memory Dominance (FalkorDB & Memgraph):**
-   - **Throughput:** Memgraph and FalkorDB lead significantly (~1,200 to 1,700 ops/sec) because all graph traversals execute directly in RAM.
-   - **Latency:** Sub-millisecond p50 latencies (~0.6 ms - 0.7 ms) make them ideal for ultra-low-latency real-time lookups.
-
-2. **Disk-Backed & Relational Persistence (Apache AGE & ArangoDB):**
-   - **Apache AGE:** Achieves solid read performance (~295 ops/sec) by leveraging PostgreSQL's indexing, though mixed workloads experience higher tail latency due to disk transaction overhead.
-   - **ArangoDB:** Displays highly predictable and stable latency (~44 ms p50) across both read and mixed workloads (~21 ops/sec), favoring consistency over raw throughput.
-
-3. **Storage & ACID Guarantees:**
-   - The primary trade-off highlighted by these metrics is memory storage vs. disk persistence. While in-memory engines maximize raw speed, disk-backed engines prioritize durable storage and strict ACID transactional safety.
-
 ## Results Matrix
 
 | Database Engine | Workload Type | Throughput (ops/sec) | p50 Latency (ms) | p95 Latency (ms) | Memory Usage |
@@ -59,3 +46,17 @@ Relational & Persistent Storage: Apache AGE, ArangoDB, and CognoDB persist data 
 ##  Visual Analysis
 
 ![Benchmark Summary](graph_benchmark_summary.png)
+
+---
+## Key Performance Insights & Trade-offs
+
+1. **In-Memory Dominance (FalkorDB & Memgraph):**
+   - **Throughput:** Memgraph and FalkorDB lead significantly (~1,200 to 1,700 ops/sec) because all graph traversals execute directly in RAM.
+   - **Latency:** Sub-millisecond p50 latencies (~0.6 ms - 0.7 ms) make them ideal for ultra-low-latency real-time lookups.
+
+2. **Disk-Backed & Relational Persistence (Apache AGE & ArangoDB):**
+   - **Apache AGE:** Achieves solid read performance (~295 ops/sec) by leveraging PostgreSQL's indexing, though mixed workloads experience higher tail latency due to disk transaction overhead.
+   - **ArangoDB:** Displays highly predictable and stable latency (~44 ms p50) across both read and mixed workloads (~21 ops/sec), favoring consistency over raw throughput.
+
+3. **Storage & ACID Guarantees:**
+   - The primary trade-off highlighted by these metrics is memory storage vs. disk persistence. While in-memory engines maximize raw speed, disk-backed engines prioritize durable storage and strict ACID transactional safety.
