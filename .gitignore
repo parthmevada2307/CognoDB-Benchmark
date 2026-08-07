@@ -1,21 +1,17 @@
-# Virtual environment
+# Virtual Environment
 .venv/
 venv/
+ENV/
 
-# IDE files
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE Files
 .idea/
 .vscode/
 
-# Python cache
-__pycache__/
-*.pyc
-
-# Environment variables
-.env
-
-# OS files
+# OS Specific
 .DS_Store
 Thumbs.db
-
-# Benchmark outputs (optional, if generated)
-*.log
