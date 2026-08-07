@@ -4,38 +4,25 @@ from abc import ABC, abstractmethod
 from dotenv import load_dotenv
 
 load_dotenv()
-
 DB_TYPE = os.getenv("DB_TYPE", "falkordb").lower()
 FILE_PATH = "datasets/Wiki-Vote.txt"
 BATCH_SIZE = 5000  # Optimal chunk size for batch processing across databases
-
-
-# ==============================================================================
-# 1. ABSTRACT BASE CLASS FOR INGESTION
-# ==============================================================================
 
 class BaseIngestor(ABC):
 
     @abstractmethod
     def connect(self):
         pass
-
     @abstractmethod
     def setup_schema(self):
         pass
-
     @abstractmethod
     def ingest_batch(self, batch: list[dict]):
         pass
-
     @abstractmethod
     def close(self):
         pass
 
-
-# ==============================================================================
-# 2. DATABASE SPECIFIC IMPLEMENTATIONS
-# ==============================================================================
 
 class Neo4jFamilyIngestor(BaseIngestor):
     """Handles Neo4j, CognoDB, and Memgraph (Cypher-based)."""
@@ -168,7 +155,6 @@ class FalkorDBIngestor(BaseIngestor):
         MERGE (b:BenchmarkUser {id: row.target})
         MERGE (a)-[:BENCHMARK_VOTED]->(b)
         """
-        # Execute query passing parameters via RedisGraph command format
         self.r.execute_command(
             "GRAPH.QUERY",
             "benchmark_graph",
@@ -226,12 +212,6 @@ class AgeIngestor(BaseIngestor):
     def close(self):
         if self.conn:
             self.conn.close()
-
-
-# ==============================================================================
-# 3. FACTORY AND BENCHMARK RUNNER
-# ==============================================================================
-
 def get_ingestor(db_type: str) -> BaseIngestor:
     if db_type in ["neo4j", "cognodb", "memgraph"]:
         return Neo4jFamilyIngestor(db_type)
@@ -254,8 +234,6 @@ def parse_dataset(file_path: str) -> list[dict]:
             source, target = line.strip().split()
             records.append({"source": int(source), "target": int(target)})
     return records
-
-
 def run_benchmark():
     print(f"=== Starting Ingestion Benchmark for [{DB_TYPE.upper()}] ===")
 
@@ -279,14 +257,10 @@ def run_benchmark():
     end_time = time.perf_counter()
     elapsed = end_time - start_time
     throughput = total_records / elapsed if elapsed > 0 else 0
-
-    print("\n-----------------------------------------")
     print(f"Ingestion Results [{DB_TYPE.upper()}]:")
     print(f"Total Records Ingested: {total_records}")
     print(f"Total Duration:         {elapsed:.2f} seconds")
     print(f"Throughput Rate:        {throughput:.2f} records/sec")
-    print("-----------------------------------------")
-
     ingestor.close()
 
 if __name__ == "__main__":

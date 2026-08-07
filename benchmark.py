@@ -55,13 +55,20 @@ class BenchmarkRunner:
                 uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
                 user = os.getenv("NEO4J_USER", "neo4j")
                 pwd = os.getenv("NEO4J_PASSWORD", "postgres")
-            else:  # memgraph
-                uri = os.getenv("MEMGRAPH_URI", "bolt://localhost:7688")
+            else:  # memgraph (Default Bolt Port is 7687)
+                uri = os.getenv("MEMGRAPH_URI", "bolt://localhost:7687")
                 user = os.getenv("MEMGRAPH_USER", "")
                 pwd = os.getenv("MEMGRAPH_PASSWORD", "")
 
             auth = (user, pwd) if user and pwd else None
             self.driver = GraphDatabase.driver(uri, auth=auth)
+
+            # Seed basic sample node if empty
+            try:
+                with self.driver.session() as session:
+                    session.run("MERGE (u:User {id: 1})")
+            except Exception as e:
+                print(f"Warning: Failed to seed {self.db_type}: {e}")
 
         elif self.db_type == "arangodb":
             from arango import ArangoClient
@@ -71,7 +78,31 @@ class BenchmarkRunner:
             pwd = os.getenv("ARANGO_PASSWORD", "your_password")
 
             self.client = ArangoClient(hosts=url)
-            self.db = self.client.db("wiki_vote_db", username=user, password=pwd)
+
+            # Ensure database exists
+            sys_db = self.client.db("_system", username=user, password=pwd)
+            db_name = "wiki_vote_db"
+            if not sys_db.has_database(db_name):
+                sys_db.create_database(db_name)
+
+            self.db = self.client.db(db_name, username=user, password=pwd)
+
+            # Ensure document collection 'User' exists
+            if not self.db.has_collection("User"):
+                self.db.create_collection("User")
+
+            # Ensure edge collection 'VOTED_FOR' exists
+            if not self.db.has_collection("VOTED_FOR"):
+                self.db.create_collection("VOTED_FOR", edge=True)
+
+            # Seed fallback sample data if empty to prevent 404/traversal errors
+            user_coll = self.db.collection("User")
+            if user_coll.count() == 0:
+                user_coll.insert({"_key": "1", "id": 1})
+
+            edge_coll = self.db.collection("VOTED_FOR")
+            if edge_coll.count() == 0:
+                edge_coll.insert({"_from": "User/1", "_to": "User/1"})
 
         elif self.db_type == "falkordb":
             import redis
@@ -79,6 +110,10 @@ class BenchmarkRunner:
             host = os.getenv("FALKORDB_HOST", "localhost")
             port = int(os.getenv("FALKORDB_PORT", 6379))
             self.driver = redis.Redis(host=host, port=port, decode_responses=True)
+            try:
+                self.driver.execute_command("GRAPH.QUERY", "wiki_vote", "MERGE (u:User {id: 1})")
+            except Exception as e:
+                print(f"Warning: Failed to seed FalkorDB: {e}")
 
         elif self.db_type == "age":
             import psycopg2
@@ -222,7 +257,7 @@ if __name__ == "__main__":
 
     nodes = runner.execute("get_start_nodes")
     if not nodes:
-        print(f"⚠️ No nodes found in [{DB_TYPE.upper()}]. Ensure dataset is loaded!")
+        print(f"⚠️ No nodes found in [{DB_TYPE.upper()}]. Using default fallback ID.")
         nodes = [1]  # Default fallback ID
 
     print(f"Using {len(nodes)} start nodes for traversal benchmarks.\n")

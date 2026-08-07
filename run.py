@@ -7,7 +7,7 @@ import time
 DATABASES = ["memgraph", "arangodb", "cognodb", "age", "falkordb"]
 
 def run_suite():
-    print("🚀 Running benchmarks for remaining databases...\n")
+    print("Running benchmarks for remaining databases...\n")
     python_exe = sys.executable
 
     for db in DATABASES:
@@ -20,9 +20,9 @@ def run_suite():
 
         try:
             subprocess.run([python_exe, "benchmark.py"], env=env, check=True)
-            print(f"✅ Successfully finished {db.upper()}\n")
+            print(f"Successfully finished {db.upper()}\n")
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to run {db.upper()}: {e}\n")
+            print(f"Failed to run {db.upper()}: {e}\n")
 
         time.sleep(2)
 

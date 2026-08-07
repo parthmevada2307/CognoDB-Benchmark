@@ -17,7 +17,6 @@ TOTAL_OPS = int(os.getenv("TOTAL_OPS", "100"))
 WORKERS = int(os.getenv("WORKERS", "10"))
 CSV_FILE = "benchmark_results.csv"
 
-# Container Mapping for Resource Telemetry
 CONTAINER_NAMES = {
     "age": "apache-age",
     "falkordb": "falkordb",
@@ -25,10 +24,6 @@ CONTAINER_NAMES = {
     "neo4j": "neo4j",
     "arangodb": "arangodb",
 }
-
-# ==============================================================================
-# 1. BASE CLIENT ADAPTER
-# ==============================================================================
 
 class BaseWorkloadRunner(ABC):
     @abstractmethod
@@ -48,11 +43,6 @@ class BaseWorkloadRunner(ABC):
 
     @abstractmethod
     def close(self): pass
-
-# ==============================================================================
-# 2. DATABASE ADAPTER IMPLEMENTATIONS
-# ==============================================================================
-
 class Neo4jFamilyWorkload(BaseWorkloadRunner):
     def __init__(self, db_type: str):
         self.db_type = db_type
@@ -74,7 +64,6 @@ class Neo4jFamilyWorkload(BaseWorkloadRunner):
         auth = (user, pwd) if user and pwd else None
         self.driver = GraphDatabase.driver(uri, auth=auth)
         self.driver.verify_connectivity()
-
     def setup_schema(self):
         query = ("CREATE CONSTRAINT IF NOT EXISTS FOR (u:BenchmarkUser) REQUIRE u.id IS UNIQUE"
                  if self.db_type != "memgraph" else "CREATE INDEX ON :BenchmarkUser(id);")
@@ -216,11 +205,6 @@ class AgeWorkload(BaseWorkloadRunner):
 
     def close(self):
         if self.pool: self.pool.closeall()
-
-
-# ==============================================================================
-# 3. HELPER FUNCTIONS & EXECUTOR
-# ==============================================================================
 
 def get_runner(db_type: str) -> BaseWorkloadRunner:
     if db_type in ["neo4j", "cognodb", "memgraph"]: return Neo4jFamilyWorkload(db_type)

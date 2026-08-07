@@ -5,11 +5,9 @@ load_dotenv()
 
 db_type = os.getenv("DB_TYPE", "arangodb").lower()
 
-
 def connect():
     if db_type in ["cognodb", "neo4j", "memgraph"]:
         from neo4j import GraphDatabase
-
         # Map environment variables based on DB_TYPE
         if db_type == "cognodb":
             uri, user, pwd = (
@@ -37,7 +35,6 @@ def connect():
             ]
             print(f"{db_type.upper()}: {msg}")
         driver.close()
-
     elif db_type == "arangodb":
         from arango import ArangoClient
 
@@ -51,7 +48,6 @@ def connect():
 
         res = sys_db.aql.execute("RETURN 'Connected successfully!'")
         print(f"ARANGODB: {res.next()}")
-
     elif db_type == "falkordb":
         import redis
 
@@ -66,7 +62,6 @@ def connect():
 
     elif db_type == "age":
         import psycopg2
-
         conn = psycopg2.connect(
             host=os.getenv("AGE_HOST", "localhost"),
             port=os.getenv("AGE_PORT", 5432),
@@ -81,10 +76,7 @@ def connect():
             cur.execute("SELECT 'Connected successfully!' AS message;")
             print(f"AGE: {cur.fetchone()[0]}")
         conn.close()
-
     else:
         print(f"Unknown database type: {db_type}")
-
-
 if __name__ == "__main__":
     connect()

@@ -160,7 +160,7 @@ def plot_benchmark_results():
 
     plt.tight_layout()
     plt.savefig(OUTPUT_IMAGE, dpi=300, bbox_inches="tight")
-    print(f"📊 Chart successfully saved as '{OUTPUT_IMAGE}'.")
+    print(f"Chart successfully saved as '{OUTPUT_IMAGE}'.")
 
 
 if __name__ == "__main__":
